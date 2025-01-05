@@ -5,8 +5,10 @@ Installation:
 https://greasyfork.org/de/scripts/522701-h%C3%A4ndlerlogo-im-deal
 
 Vorher:
-![grafik](https://github.com/user-attachments/assets/9d7f39f6-3e03-4286-87b4-4944ed6b19ae)
+![grafik](https://github.com/user-attachments/assets/abf3d7c0-dec6-4eb7-a457-5483dd42d659)
+
 
 Nachher:
-![grafik](https://github.com/user-attachments/assets/2c8ffaf1-2a83-49cc-a3ee-c1a8c199a6b6)
+![grafik](https://github.com/user-attachments/assets/b52c3dd9-5e5d-4b0c-9fb2-b32d9cae0f6e)
+
 
