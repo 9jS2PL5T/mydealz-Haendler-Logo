@@ -38,6 +38,11 @@ let buttonContainer; // Add global container reference
 // Add at top with other constants
 const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deals|gutscheine)\?merchant-id=\d+/;
 
+// Add touch detection at top
+const isTouchDevice = () => {
+    return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+};
+
 (function() {
     'use strict';
 
@@ -496,101 +501,157 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
 
         // Handle voucher code if exists
         if (footerMeta && voucherInput && commentsButton) {
-            // Add margin to comments button
-            commentsButton.classList.add('space--mr-1');
+            // Standard desktop processing
+            if (!isTouchDevice()) {
+                // Add margin to comments button
+                commentsButton.classList.add('space--mr-1');
 
-            // Hide original voucher container
-            const voucherContainer = voucherInput.closest('.width--fromW2-6');
-            if (voucherContainer) {
-                voucherContainer.style.display = 'none';
-            }
+                // Hide original voucher container
+                const voucherContainer = voucherInput.closest('.width--fromW2-6');
+                if (voucherContainer) {
+                    voucherContainer.style.display = 'none';
+                }
 
-            // Hide empty voucher container and parent
-            const emptyContainer = deal.querySelector('.flex--fromW2.boxAlign-ai--all-c.flex--dir-row-reverse');
-            if (emptyContainer) {
-                emptyContainer.style.display = 'none';
-            }
+                // Hide empty voucher container and parent
+                const emptyContainer = deal.querySelector('.flex--fromW2.boxAlign-ai--all-c.flex--dir-row-reverse');
+                if (emptyContainer) {
+                    emptyContainer.style.display = 'none';
+                }
 
-            // Get deal or rebate button - expanded selector
-            const actionButton = deal.querySelector('.width--fromW2-6 a[data-t="dealLink"], .width--fromW2-6 a[data-t="redeemLink"]')?.closest('.width--fromW2-6');
-            if (actionButton) {
-                actionButton.style.display = 'none';
-            }
+                // Get deal or rebate button - expanded selector
+                const actionButton = deal.querySelector('.width--fromW2-6 a[data-t="dealLink"], .width--fromW2-6 a[data-t="redeemLink"]')?.closest('.width--fromW2-6');
+                if (actionButton) {
+                    actionButton.style.display = 'none';
+                }
 
-            // Remove any existing copy buttons first
-            footerMeta.querySelectorAll('.button--code').forEach(btn => btn.remove());
+                // Remove any existing copy buttons first
+                footerMeta.querySelectorAll('.button--code').forEach(btn => btn.remove());
 
-            // Create single copy button container
-            const copyButtonContainer = document.createElement('div');
-            copyButtonContainer.style.cssText = `
-                height: 36px;
-                display: flex;
-                align-items: center;
-            `;
-
-            // Create copy button
-            const copyButton = document.createElement('button');
-            copyButton.className = 'button button--type-primary button--shape-circle button--size-m button--code flex--shrink-0 space--mr-1 button--mode-brand';
-            copyButton.innerHTML = `
-                <span data-t="copyVoucherCode" data-t-click="">
-                    <svg width="19px" height="22px" class="icon icon--duplicate">
-                        <use xlink:href="/assets/img/ico_c6302.svg#duplicate"></use>
-                    </svg>
-                </span>
-            `;
-
-            // Add copy functionality
-            const codeValue = voucherInput.value;
-            copyButton.onclick = (e) => {
-                navigator.clipboard.writeText(codeValue);
-
-                const feedback = document.createElement('div');
-                feedback.style.cssText = `
-                    position: fixed;
-                    left: ${e.clientX}px;
-                    top: ${e.clientY - 60}px;
-                    transform: translateX(-50%);
-                    background: white;
-                    color: black;
-                    padding: 12px 24px;
-                    border-radius: 4px;
-                    font-size: 14px;
-                    white-space: pre-line;
-                    text-align: center;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-                    z-index: 100000;
-                    animation: fadeIn 0.2s ease-in-out;
+                // Create single copy button container
+                const copyButtonContainer = document.createElement('div');
+                copyButtonContainer.style.cssText = `
+                    height: 36px;
+                    display: flex;
+                    align-items: center;
                 `;
 
-                // Add keyframes for fade-in
-                const style = document.createElement('style');
-                style.textContent = `
-                    @keyframes fadeIn {
-                        from { opacity: 0; transform: translate(-50%, 10px); }
-                        to { opacity: 1; transform: translate(-50%, 0); }
-                    }
+                // Create copy button
+                const copyButton = document.createElement('button');
+                copyButton.className = 'button button--type-primary button--shape-circle button--size-m button--code flex--shrink-0 space--mr-1 button--mode-brand';
+                copyButton.innerHTML = `
+                    <span data-t="copyVoucherCode" data-t-click="">
+                        <svg width="19px" height="22px" class="icon icon--duplicate">
+                            <use xlink:href="/assets/img/ico_c6302.svg#duplicate"></use>
+                        </svg>
+                    </span>
                 `;
-                document.head.appendChild(style);
 
-                feedback.textContent = `Code "${codeValue}"\nin Zwischenablage kopiert`;
-                document.body.appendChild(feedback);
+                // Add copy functionality
+                const codeValue = voucherInput.value;
+                copyButton.onclick = (e) => {
+                    navigator.clipboard.writeText(codeValue);
 
-                setTimeout(() => {
-                    feedback.style.animation = 'fadeOut 0.2s ease-in-out forwards';
-                    setTimeout(() => feedback.remove(), 200);
-                }, 1800);
-            };
+                    const feedback = document.createElement('div');
+                    feedback.style.cssText = `
+                        position: fixed;
+                        left: ${e.clientX}px;
+                        top: ${e.clientY - 60}px;
+                        transform: translateX(-50%);
+                        background: white;
+                        color: black;
+                        padding: 12px 24px;
+                        border-radius: 4px;
+                        font-size: 14px;
+                        white-space: pre-line;
+                        text-align: center;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                        z-index: 100000;
+                        animation: fadeIn 0.2s ease-in-out;
+                    `;
 
-            // Add button to container
-            copyButtonContainer.appendChild(copyButton);
+                    // Add keyframes for fade-in
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        @keyframes fadeIn {
+                            from { opacity: 0; transform: translate(-50%, 10px); }
+                            to { opacity: 1; transform: translate(-50%, 0); }
+                        }
+                    `;
+                    document.head.appendChild(style);
 
-            // Insert container instead of button directly
-            footerMeta.appendChild(copyButtonContainer);
+                    feedback.textContent = `Code "${codeValue}"\nin Zwischenablage kopiert`;
+                    document.body.appendChild(feedback);
 
-            // Move action button after copy button container
-            if (actionButton) {
-                footerMeta.appendChild(actionButton);
-                actionButton.style.display = 'block';
+                    setTimeout(() => {
+                        feedback.style.animation = 'fadeOut 0.2s ease-in-out forwards';
+                        setTimeout(() => feedback.remove(), 200);
+                    }, 1800);
+                };
+
+                // Add button to container
+                copyButtonContainer.appendChild(copyButton);
+
+                // Insert container instead of button directly
+                footerMeta.appendChild(copyButtonContainer);
+
+                // Move action button after copy button container
+                if (actionButton) {
+                    footerMeta.appendChild(actionButton);
+                    actionButton.style.display = 'block';
+                }
+            } else {
+                // Create mobile container
+                const mobileContainer = document.createElement('div');
+                mobileContainer.className = 'flex width--all-12 space--t-2';
+                mobileContainer.style.cssText = `
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 0 12px;
+                `;
+
+                // Create left container for voucher
+                const voucherContainer = document.createElement('div');
+                voucherContainer.style.cssText = `
+                    flex: 1;
+                    margin-right: 8px;
+                `;
+
+                // Create copy button
+                const copyButton = document.createElement('button');
+                copyButton.className = 'button button--type-primary button--shape-circle button--size-m button--code flex--shrink-0 button--mode-brand width--all-12';
+                // ...existing copy button code...
+
+                // Create action button container
+                const actionContainer = document.createElement('div');
+                actionContainer.style.cssText = `
+                    flex: 1;
+                    margin-left: 8px;
+                `;
+
+                // Move action button
+                const actionButton = deal.querySelector('.width--fromW2-6 a[data-t="dealLink"], .width--fromW2-6 a[data-t="redeemLink"]')?.closest('.width--fromW2-6');
+                if (actionButton) {
+                    actionContainer.appendChild(actionButton);
+                    actionButton.style.display = 'block';
+                }
+
+                // Assemble mobile layout
+                voucherContainer.appendChild(copyButton);
+                mobileContainer.appendChild(voucherContainer);
+                mobileContainer.appendChild(actionContainer);
+
+                // Insert after footer
+                const threadGrid = deal.querySelector('.threadGrid-footerMeta');
+                if (threadGrid) {
+                    threadGrid.parentNode.insertBefore(mobileContainer, threadGrid.nextSibling);
+                }
+
+                // Hide original containers
+                const originalVoucherContainer = voucherInput.closest('.width--fromW2-6');
+                if (originalVoucherContainer) {
+                    originalVoucherContainer.style.display = 'none';
+                }
             }
         }
     };
@@ -664,22 +725,5 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
             minute: '2-digit'
         });
     };
-
-    const SMALL_SCREEN_STYLES = `
-        @media screen and (max-width: 768px) {
-            .button--code span.text,
-            .button--mode-brand span.text {
-                display: none !important;
-            }
-            .thread-link.button.button--type-primary span.text {
-                display: none !important;
-            }
-        }
-    `;
-
-    // Add style to head
-    const smallScreenStyle = document.createElement('style');
-    smallScreenStyle.textContent = SMALL_SCREEN_STYLES;
-    document.head.appendChild(smallScreenStyle);
 
 })();
