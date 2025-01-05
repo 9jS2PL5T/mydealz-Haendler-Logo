@@ -589,21 +589,6 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
 
             // Move action button after copy button container
             if (actionButton) {
-                // Add media query for button text
-                const buttonText = actionButton.querySelector('.button--text, .button__cell-text');
-                if (buttonText) {
-                    const style = document.createElement('style');
-                    style.textContent = `
-                        @media screen and (max-width: 768px) {
-                            .button--text, .button__cell-text {
-                                display: none !important;
-                            }
-                        }
-                    `;
-                    document.head.appendChild(style);
-                }
-
-                // Move button after copy container
                 footerMeta.appendChild(actionButton);
                 actionButton.style.display = 'block';
             }
@@ -679,5 +664,22 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
             minute: '2-digit'
         });
     };
+
+    const SMALL_SCREEN_STYLES = `
+        @media screen and (max-width: 768px) {
+            .button--code span.text,
+            .button--mode-brand span.text {
+                display: none !important;
+            }
+            .thread-link.button.button--type-primary span.text {
+                display: none !important;
+            }
+        }
+    `;
+
+    // Add style to head
+    const smallScreenStyle = document.createElement('style');
+    smallScreenStyle.textContent = SMALL_SCREEN_STYLES;
+    document.head.appendChild(smallScreenStyle);
 
 })();
