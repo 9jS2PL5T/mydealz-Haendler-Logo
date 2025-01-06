@@ -572,125 +572,57 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
 
         // Handle voucher code if exists
         if (footerMeta && voucherInput && commentsButton) {
+            // Get action button early
+            const actionButton = deal.querySelector('a[data-t="dealLink"], a[data-t="redeemLink"]');
+            
             // Add margin to comments button
             commentsButton.classList.add('space--mr-1');
 
-            // Hide original voucher container
+            // Hide original containers
             const originalVoucherContainer = voucherInput.closest('.width--fromW2-6');
             if (originalVoucherContainer) {
                 originalVoucherContainer.style.display = 'none';
             }
 
-            // Hide empty voucher container and parent
             const emptyContainer = deal.querySelector('.flex--fromW2.boxAlign-ai--all-c.flex--dir-row-reverse');
             if (emptyContainer) {
                 emptyContainer.style.display = 'none';
             }
 
-            // Get deal or rebate button - expanded selector
-            const actionButtonContainer = deal.querySelector('.width--fromW2-6 a[data-t="dealLink"], .width--fromW2-6 a[data-t="redeemLink"]')?.closest('.width--fromW2-6');
-            if (actionButtonContainer) {
-                actionButtonContainer.style.display = 'none';
-            }
-
-            // Remove any existing copy buttons first
-            footerMeta.querySelectorAll('.button--code').forEach(btn => btn.remove());
-
-            // Create single copy button container
-            const copyBtnWrapper = document.createElement('div');
-            copyBtnWrapper.style.cssText = `
-                height: 36px;
-                display: flex;
-                align-items: center;
-            `;
-
-            // Create copy button
-            const copyButton = document.createElement('button');
-            copyButton.className = 'button button--type-primary button--shape-circle button--size-m button--code flex--shrink-0 space--mr-1 button--mode-brand';
-            copyButton.innerHTML = `
-                <span data-t="copyVoucherCode" data-t-click="">
-                    <svg width="19px" height="22px" class="icon icon--duplicate">
-                        <use xlink:href="/assets/img/ico_c6302.svg#duplicate"></use>
-                    </svg>
-                </span>
-            `;
-
-            // Add copy functionality
-            const codeValue = voucherInput.value;
-            copyButton.onclick = (e) => {
-                navigator.clipboard.writeText(codeValue);
-
-                const feedback = document.createElement('div');
-                feedback.style.cssText = `
-                    position: fixed;
-                    left: ${e.clientX}px;
-                    top: ${e.clientY - 60}px;
-                    transform: translateX(-50%);
-                    background: white;
-                    color: black;
-                    padding: 12px 24px;
-                    border-radius: 4px;
-                    font-size: 14px;
-                    white-space: pre-line;
-                    text-align: center;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-                    z-index: 100000;
-                    animation: fadeIn 0.2s ease-in-out;
-                `;
-
-                // Add keyframes for fade-in
-                const style = document.createElement('style');
-                style.textContent = `
-                    @keyframes fadeIn {
-                        from { opacity: 0; transform: translate(-50%, 10px); }
-                        to { opacity: 1; transform: translate(-50%, 0); }
-                    }
-                `;
-                document.head.appendChild(style);
-
-                feedback.textContent = `Code "${codeValue}"\nin Zwischenablage kopiert`;
-                document.body.appendChild(feedback);
-
-                setTimeout(() => {
-                    feedback.style.animation = 'fadeOut 0.2s ease-in-out forwards';
-                    setTimeout(() => feedback.remove(), 200);
-                }, 1800);
-            };
-
-            // Add button to container
-            copyBtnWrapper.appendChild(copyButton);
-
-            // Insert container instead of button directly
-            footerMeta.appendChild(copyBtnWrapper);
-
-            // Move action button after copy button container
-            if (actionButton) {
-                footerMeta.appendChild(actionButton);
-                actionButton.style.display = 'block';
-            }
-
             // Create mobile container
             const mobileContainer = document.createElement('div');
             mobileContainer.className = 'mobile-deal-actions';
+            mobileContainer.style.cssText = `
+                display: none;
+                flex-direction: column;
+                gap: 8px;
+                margin-top: 12px;
+                width: 100%;
+            `;
 
-            // Create voucher container
+            // Add voucher code first
             const voucherContainer = document.createElement('div');
             voucherContainer.className = 'voucher-container';
+            voucherContainer.appendChild(createCopyButton(voucherInput.value));
+            mobileContainer.appendChild(voucherContainer);
 
-            // Move copy button and input to voucher container
-            const copyButtonContainer = createCopyButton(voucherInput.value);
-            voucherContainer.appendChild(copyButtonContainer);
-
-            // Move action button
-            const actionButton = deal.querySelector('.width--fromW2-6 a[data-t="dealLink"], .width--fromW2-6 a[data-t="redeemLink"]');
+            // Add action button if exists
             if (actionButton) {
                 actionButton.className += ' deal-button';
-                mobileContainer.appendChild(voucherContainer);
-                mobileContainer.appendChild(actionButton);
+                actionButton.style.cssText = `
+                    width: 100%;
+                    display: block;
+                `;
+                mobileContainer.appendChild(actionButton.cloneNode(true));
             }
 
-            // Add to footer
-            footerMeta.appendChild(mobileContainer);
+            // Add to thread grid
+            const threadGrid = deal.querySelector('.threadGrid');
+            if (threadGrid) {
+                threadGrid.appendChild(mobileContainer);
+            }
+
+            // Rest of existing code...
         }
     };
 
@@ -770,7 +702,7 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
             .button--mode-brand span.text {
                 display: none !important;
             }
-
+            
             .thread-link.button.button--type-primary span.text {
                 display: none !important;
             }
