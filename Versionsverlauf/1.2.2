@@ -572,36 +572,46 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
 
         // Handle voucher code if exists
         if (footerMeta && voucherInput) {
-            // Get action button with expanded selector
             const actionButton = deal.querySelector('a[data-t="dealLink"], a[data-t="redeemLink"]');
-
-            // Create mobile container
+            
+            // Create containers
             const mobileContainer = document.createElement('div');
             mobileContainer.className = 'mobile-deal-actions';
-
-            // Add voucher code first
+            
             const voucherContainer = document.createElement('div');
             voucherContainer.className = 'voucher-container';
             voucherContainer.appendChild(createCopyButton(voucherInput.value));
+
+            // Add to mobile container
             mobileContainer.appendChild(voucherContainer);
 
-            // Clone action button if exists
             if (actionButton) {
                 const clonedButton = actionButton.cloneNode(true);
                 clonedButton.className = 'deal-button button button--type-primary';
-                clonedButton.style.cssText = `
-                    width: 100%;
-                    display: block;
-                    margin-top: 8px;
-                `;
                 mobileContainer.appendChild(clonedButton);
             }
 
-            // Add after footer
+            // Add mobile container after footer
             const threadGrid = deal.querySelector('.threadGrid');
             if (threadGrid) {
                 threadGrid.appendChild(mobileContainer);
             }
+
+            // Move original buttons to footerMeta for desktop
+            const desktopContainer = document.createElement('div');
+            desktopContainer.className = 'desktop-deal-actions';
+            desktopContainer.style.cssText = 'display: flex; gap: 8px; align-items: center;';
+            
+            if (voucherInput) {
+                const voucherClone = createCopyButton(voucherInput.value);
+                desktopContainer.appendChild(voucherClone);
+            }
+            
+            if (actionButton) {
+                desktopContainer.appendChild(actionButton);
+            }
+
+            footerMeta.appendChild(desktopContainer);
         }
     };
 
@@ -676,13 +686,17 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
     };
 
     const SMALL_SCREEN_STYLES = `
+        /* Mobile styles */
         @media screen and (max-width: 768px) {
-            /* Show mobile container on small screens */
             .mobile-deal-actions {
                 display: flex !important;
+                flex-direction: column;
+                padding: 12px;
+                margin-top: 12px;
+                background: #f8f8f8;
+                border-radius: 4px;
             }
 
-            /* Hide original desktop containers */
             .width--fromW2-6,
             .flex--fromW2.boxAlign-ai--all-c.flex--dir-row-reverse {
                 display: none !important;
@@ -694,6 +708,16 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
             .mobile-deal-actions {
                 display: none !important;
             }
+        }
+
+        /* Common styles */
+        .voucher-container {
+            width: 100%;
+        }
+
+        .deal-button {
+            margin-top: 8px;
+            width: 100%;
         }
     `;
 
