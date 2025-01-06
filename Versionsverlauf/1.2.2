@@ -571,34 +571,13 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
         const commentsButton = footerMeta?.querySelector('a[data-t="commentsLink"]');
 
         // Handle voucher code if exists
-        if (footerMeta && voucherInput && commentsButton) {
-            // Get action button early
+        if (footerMeta && voucherInput) {
+            // Get action button with expanded selector
             const actionButton = deal.querySelector('a[data-t="dealLink"], a[data-t="redeemLink"]');
-            
-            // Add margin to comments button
-            commentsButton.classList.add('space--mr-1');
-
-            // Hide original containers
-            const originalVoucherContainer = voucherInput.closest('.width--fromW2-6');
-            if (originalVoucherContainer) {
-                originalVoucherContainer.style.display = 'none';
-            }
-
-            const emptyContainer = deal.querySelector('.flex--fromW2.boxAlign-ai--all-c.flex--dir-row-reverse');
-            if (emptyContainer) {
-                emptyContainer.style.display = 'none';
-            }
 
             // Create mobile container
             const mobileContainer = document.createElement('div');
             mobileContainer.className = 'mobile-deal-actions';
-            mobileContainer.style.cssText = `
-                display: none;
-                flex-direction: column;
-                gap: 8px;
-                margin-top: 12px;
-                width: 100%;
-            `;
 
             // Add voucher code first
             const voucherContainer = document.createElement('div');
@@ -606,23 +585,23 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
             voucherContainer.appendChild(createCopyButton(voucherInput.value));
             mobileContainer.appendChild(voucherContainer);
 
-            // Add action button if exists
+            // Clone action button if exists
             if (actionButton) {
-                actionButton.className += ' deal-button';
-                actionButton.style.cssText = `
+                const clonedButton = actionButton.cloneNode(true);
+                clonedButton.className = 'deal-button button button--type-primary';
+                clonedButton.style.cssText = `
                     width: 100%;
                     display: block;
+                    margin-top: 8px;
                 `;
-                mobileContainer.appendChild(actionButton.cloneNode(true));
+                mobileContainer.appendChild(clonedButton);
             }
 
-            // Add to thread grid
+            // Add after footer
             const threadGrid = deal.querySelector('.threadGrid');
             if (threadGrid) {
                 threadGrid.appendChild(mobileContainer);
             }
-
-            // Rest of existing code...
         }
     };
 
@@ -698,43 +677,21 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
 
     const SMALL_SCREEN_STYLES = `
         @media screen and (max-width: 768px) {
-            .button--code span.text,
-            .button--mode-brand span.text {
-                display: none !important;
-            }
-            
-            .thread-link.button.button--type-primary span.text {
-                display: none !important;
-            }
-
-            /* Mobile layout for deal actions */
-            .footerMeta {
-                flex-direction: column !important;
-            }
-
-            /* Container for mobile deal actions */
+            /* Show mobile container on small screens */
             .mobile-deal-actions {
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                margin-top: 12px;
-                width: 100%;
+                display: flex !important;
             }
 
-            /* Style voucher container */
-            .mobile-deal-actions .voucher-container {
-                display: flex;
-                width: 100%;
-                gap: 8px;
-            }
-
-            /* Style action button */
-            .mobile-deal-actions .deal-button {
-                width: 100%;
-            }
-
-            /* Hide desktop containers */
+            /* Hide original desktop containers */
+            .width--fromW2-6,
             .flex--fromW2.boxAlign-ai--all-c.flex--dir-row-reverse {
+                display: none !important;
+            }
+        }
+
+        /* Desktop styles */
+        @media screen and (min-width: 769px) {
+            .mobile-deal-actions {
                 display: none !important;
             }
         }
