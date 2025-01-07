@@ -534,7 +534,7 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
         // Improved button handling
         const waitForDealButton = () => {
             const dealButton = dealContainerParent?.querySelector('a[data-t="dealLink"]');
-
+            
             if (dealButton) {
                 moveButtons(footerMeta, voucherInput, dealButton, dealContainerParent);
             } else {
@@ -544,56 +544,29 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
 
         const moveButtons = (footer, voucher, deal, container) => {
             try {
-                // Find content to preserve
-                const userHtmlContent = container?.closest('article')?.querySelector('.userHtml-content');
-                const parentElement = userHtmlContent?.parentElement?.parentElement;
+                // Create mobile container
+                const mobileContainer = document.createElement('div');
+                mobileContainer.className = 'mobile-action-container';
 
-                if (userHtmlContent && parentElement?.parentElement) {
-                    parentElement.parentElement.insertBefore(userHtmlContent, parentElement);
-                    parentElement.remove();
-                }
-
-                // Find and hide parent container
-                const parentContainer = container?.closest('.flex--fromW2.boxAlign-ai--all-c.flex--dir-row-reverse.space--t-2');
-                if (parentContainer) {
-                    parentContainer.style.display = 'none';
-                }
-
-                // Rest of function remains the same
+                // Create button wrapper
                 const buttonWrapper = document.createElement('div');
                 buttonWrapper.className = 'button-wrapper';
-                buttonWrapper.style.cssText = `
-                    display: inline-flex;
-                    gap: 8px;
-                    align-items: center;
-                    margin-left: 8px;
-                `;
 
                 if (voucher) {
                     buttonWrapper.appendChild(createCopyButton(voucher.value));
                 }
 
                 if (deal) {
-                    // Keep original classes and add new styles
                     deal.className = 'button button--shape-circle button--type-primary button--mode-brand';
-                    deal.style.cssText = `
-                        margin: 0;
-                        padding: 6px 12px;
-                        flex-shrink: 0;
-                        display: inline-flex !important;
-                        visibility: visible !important;
-                        align-items: center;
-                    `;
                     buttonWrapper.appendChild(deal);
                 }
 
-                // Insert after existing buttons
-                footer.appendChild(buttonWrapper);
+                // Add to mobile container
+                mobileContainer.appendChild(buttonWrapper);
 
-                // Hide original container
-                if (container) {
-                    container.style.display = 'none';
-                }
+                // Add after footer
+                footer.parentElement.insertBefore(mobileContainer, footer.nextSibling);
+
             } catch (error) {
                 console.error('[Debug] Button handling error:', error);
             }
@@ -725,9 +698,48 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
         }
     `;
 
+    const SCREEN_STYLES = `
+    /* Protected Desktop Styles (no-touch) */
+    @media (min-width: 769px) and (hover: hover) {
+        .button-wrapper {
+            display: inline-flex !important;
+            gap: 8px;
+            align-items: center;
+            margin-left: 8px;
+        }
+    }
+
+    /* Touch Device Styles */
+    @media (hover: none), (max-width: 768px) {
+        .button-wrapper {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 8px;
+            margin-top: 8px;
+            order: 2;
+        }
+
+        .mobile-action-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            margin-top: 12px;
+            gap: 8px;
+        }
+
+        .button--shape-circle {
+            width: 100%;
+            justify-content: center;
+            padding: 12px;
+            margin: 0;
+        }
+    }
+`;
+
     // Add style to head
     const smallScreenStyle = document.createElement('style');
-    smallScreenStyle.textContent = SMALL_SCREEN_STYLES;
+    smallScreenStyle.textContent = SMALL_SCREEN_STYLES + SCREEN_STYLES;
     document.head.appendChild(smallScreenStyle);
 
 })();
