@@ -712,27 +712,29 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
     /* Touch Device Styles */
     @media (hover: none), (max-width: 768px) {
         .button-wrapper {
-            display: flex;
-            flex-direction: column;
+            display: flex !important;
+            flex-direction: row !important;
             width: 100%;
             gap: 8px;
             margin-top: 8px;
-            order: 2;
         }
 
-        .mobile-action-container {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            margin-top: 12px;
-            gap: 8px;
+        .button-wrapper > * {
+            flex: 1;
+            width: 50%;
         }
 
         .button--shape-circle {
             width: 100%;
             justify-content: center;
+            text-align: center;
             padding: 12px;
             margin: 0;
+        }
+
+        .mobile-action-container {
+            width: 100%;
+            margin-top: 12px;
         }
     }
 `;
