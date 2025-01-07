@@ -461,28 +461,17 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
 
     // Add before processDeal function
     const createCopyButton = (codeValue) => {
-        // Container for input and button
+        // Container for button only
         const container = document.createElement('div');
         container.style.cssText = `
             display: flex;
-            width: 100%;
-            gap: 8px;
             align-items: center;
         `;
 
-        // Create input field
+        // Create hidden input
         const input = document.createElement('input');
         input.value = codeValue;
-        input.readOnly = true;
-        input.style.cssText = `
-            flex-grow: 1;
-            padding: 8px 12px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            background: #f5f5f5;
-            font-size: 14px;
-            text-align: center;
-        `;
+        input.style.cssText = 'display: none;';
 
         // Create copy button
         const button = document.createElement('button');
@@ -538,81 +527,83 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
     const processDeal = (deal) => {
         if (!deal || deal.hasAttribute(PROCESSED_ATTR)) return;
 
-        if (cleanTitles) {
-            const merchantLink = deal.querySelector('a[data-t="merchantLink"]');
-            const titleLink = deal.querySelector('.thread-title .thread-link');
-
-            if (merchantLink && titleLink) {
-                const merchantName = merchantLink.textContent.trim();
-                const title = titleLink.textContent;
-
-                // Only store if title contains merchant name
-                if (shouldCleanTitle(title, merchantName) && !deal.hasAttribute('data-original-title')) {
-                    deal.setAttribute('data-original-title', title);
-                }
-
-                if (deal.hasAttribute('data-original-title')) {
-                    const cleanTitle = cleanMerchantFromTitle(title, merchantName);
-
-                    titleLink.textContent = cleanTitle;
-                }
-            }
-        }
-
-        // Don't show logos on merchant pages
-        if (showLogos && !window.location.href.match(MERCHANT_PAGE_PATTERN)) {
-            queue.push(deal);
-            void processQueue();
-        }
-
-        // Find footer elements
         const footerMeta = deal.querySelector('.footerMeta-actionSlot');
+        const dealContainerParent = deal.querySelector('.width--fromW2-6.space--fromW2-r-1.space--t-1.space--fromW2-t-0');
         const voucherInput = deal.querySelector('.js-voucherCode input');
-        const commentsButton = footerMeta?.querySelector('a[data-t="commentsLink"]');
 
-        // Handle voucher code if exists
-        if (footerMeta && voucherInput) {
-            const actionButton = deal.querySelector('a[data-t="dealLink"], a[data-t="redeemLink"]');
-            
-            // Create containers
-            const mobileContainer = document.createElement('div');
-            mobileContainer.className = 'mobile-deal-actions';
-            
-            const voucherContainer = document.createElement('div');
-            voucherContainer.className = 'voucher-container';
-            voucherContainer.appendChild(createCopyButton(voucherInput.value));
+        // Improved button handling
+        const waitForDealButton = () => {
+            const dealButton = dealContainerParent?.querySelector('a[data-t="dealLink"]');
 
-            // Add to mobile container
-            mobileContainer.appendChild(voucherContainer);
-
-            if (actionButton) {
-                const clonedButton = actionButton.cloneNode(true);
-                clonedButton.className = 'deal-button button button--type-primary';
-                mobileContainer.appendChild(clonedButton);
+            if (dealButton) {
+                moveButtons(footerMeta, voucherInput, dealButton, dealContainerParent);
+            } else {
+                setTimeout(waitForDealButton, 100);
             }
+        };
 
-            // Add mobile container after footer
-            const threadGrid = deal.querySelector('.threadGrid');
-            if (threadGrid) {
-                threadGrid.appendChild(mobileContainer);
-            }
+        const moveButtons = (footer, voucher, deal, container) => {
+            try {
+                // Find content to preserve
+                const userHtmlContent = container?.closest('article')?.querySelector('.userHtml-content');
+                const parentElement = userHtmlContent?.parentElement?.parentElement;
 
-            // Move original buttons to footerMeta for desktop
-            const desktopContainer = document.createElement('div');
-            desktopContainer.className = 'desktop-deal-actions';
-            desktopContainer.style.cssText = 'display: flex; gap: 8px; align-items: center;';
-            
-            if (voucherInput) {
-                const voucherClone = createCopyButton(voucherInput.value);
-                desktopContainer.appendChild(voucherClone);
-            }
-            
-            if (actionButton) {
-                desktopContainer.appendChild(actionButton);
-            }
+                if (userHtmlContent && parentElement?.parentElement) {
+                    parentElement.parentElement.insertBefore(userHtmlContent, parentElement);
+                    parentElement.remove();
+                }
 
-            footerMeta.appendChild(desktopContainer);
+                // Find and hide parent container
+                const parentContainer = container?.closest('.flex--fromW2.boxAlign-ai--all-c.flex--dir-row-reverse.space--t-2');
+                if (parentContainer) {
+                    parentContainer.style.display = 'none';
+                }
+
+                // Rest of function remains the same
+                const buttonWrapper = document.createElement('div');
+                buttonWrapper.className = 'button-wrapper';
+                buttonWrapper.style.cssText = `
+                    display: inline-flex;
+                    gap: 8px;
+                    align-items: center;
+                    margin-left: 8px;
+                `;
+
+                if (voucher) {
+                    buttonWrapper.appendChild(createCopyButton(voucher.value));
+                }
+
+                if (deal) {
+                    // Keep original classes and add new styles
+                    deal.className = 'button button--shape-circle button--type-primary button--mode-brand';
+                    deal.style.cssText = `
+                        margin: 0;
+                        padding: 6px 12px;
+                        flex-shrink: 0;
+                        display: inline-flex !important;
+                        visibility: visible !important;
+                        align-items: center;
+                    `;
+                    buttonWrapper.appendChild(deal);
+                }
+
+                // Insert after existing buttons
+                footer.appendChild(buttonWrapper);
+
+                // Hide original container
+                if (container) {
+                    container.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('[Debug] Button handling error:', error);
+            }
+        };
+
+        if (footerMeta) {
+            waitForDealButton();
         }
+
+        deal.setAttribute(PROCESSED_ATTR, 'true');
     };
 
     // Debounce observer callback
@@ -697,9 +688,22 @@ const MERCHANT_PAGE_PATTERN = /^https:\/\/www\.mydealz\.de\/(?:search\/)?(?:deal
                 border-radius: 4px;
             }
 
-            .width--fromW2-6,
-            .flex--fromW2.boxAlign-ai--all-c.flex--dir-row-reverse {
+            /* Hide containers */
+            .flex--fromW2.boxAlign-ai--all-c.flex--dir-row-reverse.space--t-2,
+            .flex--fromW2.boxAlign-ai--all-c.flex--dir-row-reverse,
+            .width--fromW2-6 {
                 display: none !important;
+            }
+
+            /* Hide empty containers but keep content */
+            .space--t-2.hide--empty {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* Move content styles */
+            .userHtml-content {
+                margin-top: 8px;
             }
         }
 
